@@ -31,5 +31,5 @@ export const Admin = sequelize.define(
       allowNull: false,
     },
   },
-  { timestamps: true, tableName: "admins" }
+  { timestamps: true }
 );

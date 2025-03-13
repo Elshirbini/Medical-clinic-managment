@@ -7,6 +7,7 @@ import { configDotenv } from "dotenv";
 import { errorHandling } from "./middlewares/errorHandling.js";
 import { ApiError } from "./utils/apiError.js";
 import sequelize from "./config/db.js";
+import { superAdmin } from "./config/superAdmin.js";
 configDotenv();
 
 const app = express();
@@ -34,6 +35,7 @@ app.use(errorHandling);
 (async () => {
   try {
     await sequelize.sync({ alter: true });
+    superAdmin();
     console.log("✅ All models were synchronized successfully.");
 
     app.listen(process.env.PORT, () => {
