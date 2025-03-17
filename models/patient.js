@@ -13,6 +13,14 @@ export const Patient = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    gender: {
+      type: DataTypes.ENUM("male", "female"),
+      allowNull: false,
+    },
+    age: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     phone: {
       type: DataTypes.STRING,
       allowNull: false,
