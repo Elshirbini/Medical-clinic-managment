@@ -15,7 +15,6 @@ export const login = asyncHandler(async (req, res, next) => {
   }
 
   const otp = generateOTP();
-  console.log(otp);
   
   await sendToWhatsapp(phone, "otp", otp);
 
