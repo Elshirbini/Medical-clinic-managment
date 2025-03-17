@@ -15,7 +15,8 @@ export const login = asyncHandler(async (req, res, next) => {
   }
 
   const otp = generateOTP();
-
+  console.log(otp);
+  
   await sendToWhatsapp(phone, "otp", otp);
 
   await redisClient.setEx(otp, 600, JSON.stringify({ id: patient.patient_id }));
