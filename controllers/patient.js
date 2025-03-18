@@ -1,5 +1,5 @@
 import asyncHandler from "express-async-handler";
-import { Patient } from "../models/index.js";
+import { Appointment, Patient } from "../models/index.js";
 import { generateOTP } from "../utils/generateOTP.js";
 import { ApiError } from "../utils/apiError.js";
 import redisClient from "../config/redis.js";
@@ -67,7 +67,7 @@ export const verifyOTP = asyncHandler(async (req, res, next) => {
 
   await redisClient.del(code);
 
-  res.cookie("accessToken", token, {
+  res.cookie("patientToken", token, {
     expires: new Date(Date.now() + 12 * 60 * 60 * 1000),
     httpOnly: true,
     secure: process.env.NODE_ENV === "prod",
@@ -75,4 +75,21 @@ export const verifyOTP = asyncHandler(async (req, res, next) => {
   });
 
   res.status(200).json({ message: "Successfully" });
+});
+
+export const getPatientAppointments = asyncHandler(async (req, res, next) => {
+  const { patientId } = req.params;
+
+  const patient = await Patient.findByPk(patientId);
+
+  const appointments = await Appointment.findAll({
+    where: { patient_id: patient.patient_id },
+    order: [["createdAt", "ASC"]],
+  });
+
+  if (!appointments || appointments.length === 0) {
+    throw new ApiError("No appointments found", 404);
+  }
+
+  res.status(200).json({ appointments });
 });
