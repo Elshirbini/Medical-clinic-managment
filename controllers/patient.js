@@ -1,9 +1,9 @@
 import asyncHandler from "express-async-handler";
+import jwt from "jsonwebtoken";
+import redisClient from "../config/redis.js";
 import { Appointment, Patient } from "../models/index.js";
 import { generateOTP } from "../utils/generateOTP.js";
 import { ApiError } from "../utils/apiError.js";
-import redisClient from "../config/redis.js";
-import jwt from "jsonwebtoken";
 import { sendToWhatsapp } from "../utils/sendToWhatsapp.js";
 
 export const login = asyncHandler(async (req, res, next) => {
