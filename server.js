@@ -34,7 +34,7 @@ app.all("*", (req, res, next) => {
 });
 
 app.use(errorHandling);
-console.log("eee")
+console.log("first")
 
 app.listen(process.env.PORT, async () => {
   try {
