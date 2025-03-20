@@ -44,7 +44,6 @@ export const verifyOTP = asyncHandler(async (req, res, next) => {
   const { code } = req.body;
   let patient;
   let id;
-  console.log(id)
   const patientData = await redisClient.get(code);
   if (!patientData) throw new ApiError("Invalid or expired OTP", 404);
 
