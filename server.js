@@ -9,6 +9,7 @@ import { ApiError } from "./utils/apiError.js";
 import sequelize from "./config/db.js";
 import { superAdmin } from "./config/superAdmin.js";
 import { patientRoutes } from "./routes/patient.js";
+import { adminRoutes } from "./routes/admin.js";
 configDotenv();
 
 const app = express();
@@ -28,6 +29,7 @@ app.use(helmet());
 //                                 **ROUTES**
 
 app.use("/api/patient", patientRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.all("*", (req, res, next) => {
   next(new ApiError(`Can't find this route : ${req.originalUrl}`, 400));
@@ -38,7 +40,7 @@ app.use(errorHandling);
 app.listen(process.env.PORT, async () => {
   try {
     await sequelize.sync({ alter: true });
-    await superAdmin()
+    await superAdmin();
     console.log("✅ All models were synchronized successfully.");
     console.log(`🚀 Server running on PORT:${process.env.PORT}`);
   } catch (error) {
