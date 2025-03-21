@@ -4,7 +4,7 @@ import redisClient from "../config/redis.js";
 import { generateOTP } from "../utils/generateOTP.js";
 import { sendToEmails } from "../utils/sendToEmails.js";
 import { Admin } from "../models/admin.js";
-import { ApiError } from "../utils/apiError.js"; // Import ApiError
+import { ApiError } from "../utils/apiError.js";
 
 const OTP_EXPIRATION = 300; // 5 minutes
 
@@ -37,7 +37,7 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
 
   await redisClient.del(`verifyEmail-otp:${otp}`);
 
-  res.status(200).json({
+  res.status(201).json({
     success: true,
     message: "Email verified and admin created successfully",
   });
