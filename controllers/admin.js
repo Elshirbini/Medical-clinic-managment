@@ -1,12 +1,10 @@
 import bcrypt from "bcrypt";
-import crypto from "crypto";
 import asyncHandler from "express-async-handler";
 import redisClient from "../config/redis.js";
 import { generateOTP } from "../utils/generateOTP.js";
 import { sendToEmails } from "../utils/sendToEmails.js";
 import { Admin } from "../models/admin.js";
 import { ApiError } from "../utils/apiError.js"; // Import ApiError
-import { json } from "sequelize";
 
 const OTP_EXPIRATION = 300; // 5 minutes
 
