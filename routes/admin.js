@@ -25,7 +25,7 @@ route.post(
 route.post("/verify-otp-for-resetPassword", verifyOTPForResetPassword);
 
 //  Reset password after OTP verification
-route.post("/reset-password", resetPassword);
+route.patch("/reset-password/:email", resetPassword);
 
 // //  Request OTP for changing email
 // route.post("/request-email-update", otpRateLimiter, requestEmailUpdate);

@@ -25,11 +25,7 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
   // Parse the stored JSON string into an object
   const { email, phone, username, password } = JSON.parse(otpData);
 
-  if (!email || !password || !username || !phone) {
-    throw new ApiError("All fields are required", 400);
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(password, 12);
 
   const newAdmin = await Admin.create({
     email,
@@ -40,10 +36,9 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
 
   await redisClient.del(`verifyEmail-otp:${otp}`);
 
-  res.status(201).json({
+  res.status(200).json({
     success: true,
     message: "Email verified and admin created successfully",
-    admin: newAdmin,
   });
 });
 
@@ -61,14 +56,14 @@ export const SendOtpForResetPassword = asyncHandler(async (req, res) => {
   const otp = generateOTP();
   await redisClient.setEx(`reset-otp:${otp}`, OTP_EXPIRATION, email);
 
-  await sendToEmails(
+  sendToEmails(
     email,
     "Reset Password OTP",
     `Your OTP for password reset is: ${otp}`
   );
 
   res
-    .status(201)
+    .status(200)
     .json({ success: true, message: "OTP sent for password reset" });
 });
 
@@ -92,7 +87,7 @@ export const verifyOTPForResetPassword = asyncHandler(async (req, res) => {
   await redisClient.del(`reset-otp:${otp}`);
 
   res
-    .status(201)
+    .status(200)
     .json({ success: true, message: "OTP verified successfully", email });
 });
 
@@ -100,8 +95,11 @@ export const verifyOTPForResetPassword = asyncHandler(async (req, res) => {
  * ✅ Reset Password After OTP Verification
  */
 export const resetPassword = asyncHandler(async (req, res) => {
-  const { email, newPassword } = req.body;
+  const { ConfirmePassword, newPassword } = req.body;
   const { email } = req.params;
+  if (ConfirmePassword !== newPassword) {
+    throw new ApiError("password dosent match", 400);
+  }
   // Check if OTP was verified
   const isVerified = await redisClient.get(`reset-verified:${email}`);
   if (!isVerified) {
@@ -122,7 +120,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
   await redisClient.del(`reset-verified:${email}`);
 
   res
-    .status(201)
+    .status(200)
     .json({ success: true, message: "Password reset successfully" });
 });
 
