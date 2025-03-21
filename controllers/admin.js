@@ -25,9 +25,12 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
   // Parse the stored JSON string into an object
   const { email, phone, username, password } = JSON.parse(otpData);
 
+  if (!email || !phone || !username || !password) {
+    throw new ApiError("Incomplete OTP data", 400);
+  }
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  const newAdmin = await Admin.create({
+  await Admin.create({
     email,
     username,
     phone,
