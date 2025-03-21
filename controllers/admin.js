@@ -6,6 +6,7 @@ import { generateOTP } from "../utils/generateOTP.js";
 import { sendToEmails } from "../utils/sendToEmails.js";
 import { Admin } from "../models/admin.js";
 import { ApiError } from "../utils/apiError.js"; // Import ApiError
+import { json } from "sequelize";
 
 const OTP_EXPIRATION = 300; // 5 minutes
 
@@ -13,16 +14,19 @@ const OTP_EXPIRATION = 300; // 5 minutes
  * ✅ Request OTP for Email Verification (Account Creation or Change)
  */
 export const verifyEmail = asyncHandler(async (req, res, next) => {
-  const { email, password, username, phone, otp } = req.body;
+  const { otp } = req.body;
 
-  if (!email || !password || !username || !phone || !otp) {
-    return next(new ApiError("All fields are required", 400));
+  const otpData = await redisClient.get(`verifyEmail-otp:${otp}`);
+
+  if (!otpData) {
+    throw new ApiError("Invalid or expired OTP", 400);
   }
 
-  const storedEmail = await redisClient.get(`verify-otp:${otp}`);
+  // Parse the stored JSON string into an object
+  const { email, phone, username, password } = JSON.parse(otpData);
 
-  if (!storedEmail || storedEmail !== email) {
-    throw new ApiError("Invalid or expired OTP", 400);
+  if (!email || !password || !username || !phone) {
+    throw new ApiError("All fields are required", 400);
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -34,7 +38,7 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
     password: hashedPassword,
   });
 
-  await redisClient.del(`verify-otp:${otp}`);
+  await redisClient.del(`verifyEmail-otp:${otp}`);
 
   res.status(201).json({
     success: true,
@@ -97,7 +101,7 @@ export const verifyOTPForResetPassword = asyncHandler(async (req, res) => {
  */
 export const resetPassword = asyncHandler(async (req, res) => {
   const { email, newPassword } = req.body;
-
+  const { email } = req.params;
   // Check if OTP was verified
   const isVerified = await redisClient.get(`reset-verified:${email}`);
   if (!isVerified) {
