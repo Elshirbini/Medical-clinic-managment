@@ -16,7 +16,7 @@ route.post("/verify-email", verifyEmail);
 
 //  Send OTP to email for password reset
 route.post(
-  "/Send-otp-for-resetPassword",
+  "/send-otp-for-resetPassword",
   otpRateLimiter,
   SendOtpForResetPassword
 );

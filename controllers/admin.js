@@ -116,7 +116,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
   }
 
   // Hash and update password
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
   await Admin.update({ password: hashedPassword }, { where: { email } });
 
   // Delete verification flag from Redis
