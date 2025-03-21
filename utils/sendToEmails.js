@@ -11,19 +11,18 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendToEmails = (email, subject, text) => {
+  const mailOptions = {
+    from: "ahmedalshirbini33@gmail.com",
+    to: email,
+    subject: subject,
+    text: text,
+  };
 
-      const mailOptions = {
-        from: "ahmedalshirbini33@gmail.com",
-        to: email,
-        subject: subject,
-        text: text,
-      };
-
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.log(error);
-        } else {
-          console.log("Email sent: " + info.response);
-        }
-      });
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Email sent: " + info.response);
+    }
+  });
 };
