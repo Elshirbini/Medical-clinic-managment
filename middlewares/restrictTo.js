@@ -1,6 +1,6 @@
 import asyncHandler from "express-async-handler";
 import { ApiError } from "../utils/apiError.js";
-import { Admin } from "../models/admin";
+import { Admin } from "../models/admin.js";
 
 export const restrictTo = (...roles) =>
   asyncHandler(async (req, res, next) => {

@@ -6,6 +6,9 @@ import { generateOTP } from "../utils/generateOTP.js";
 import { ApiError } from "../utils/apiError.js";
 import { sendToWhatsapp } from "../utils/sendToWhatsapp.js";
 
+const OTP_EXPIRATION = 300; // 5 minutes
+
+
 export const login = asyncHandler(async (req, res, next) => {
   const { phone } = req.body;
 
@@ -18,7 +21,7 @@ export const login = asyncHandler(async (req, res, next) => {
   
   await sendToWhatsapp(phone, "otp", otp);
 
-  await redisClient.setEx(otp, 600, JSON.stringify({ id: patient.patient_id }));
+  await redisClient.setEx(otp, OTP_EXPIRATION, JSON.stringify({ id: patient.patient_id }));
 
   res.status(200).json({ message: "Code sent successfully" });
 });
@@ -35,7 +38,7 @@ export const signup = asyncHandler(async (req, res, next) => {
 
   const patientData = { name, gender, age, phone };
 
-  await redisClient.setEx(otp, 360, JSON.stringify(patientData));
+  await redisClient.setEx(otp, OTP_EXPIRATION, JSON.stringify(patientData));
 
   res.status(200).json({ message: "Code sent successfully" });
 });

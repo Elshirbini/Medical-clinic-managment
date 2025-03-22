@@ -8,15 +8,15 @@ import {
 import { verifyToken } from "../middlewares/verifyToken.js";
 import { otpRateLimiter } from "../middlewares/rateLimiter.js";
 
-const route = express.Router();
+const router = express.Router();
 
-route.post("/login", login);
-route.post("/signup", signup);
-route.post("/verify-otp", otpRateLimiter, verifyOTP);
-route.get(
+router.post("/login", login);
+router.post("/signup", signup);
+router.post("/verify-otp", otpRateLimiter, verifyOTP);
+router.get(
   "/get-patient-appointments/:patientId",
   verifyToken,
   getPatientAppointments
 );
 
-export const patientRoutes = route;
+export const patientRoutes = router;

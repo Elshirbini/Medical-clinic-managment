@@ -5,8 +5,91 @@ import { generateOTP } from "../utils/generateOTP.js";
 import { sendToEmails } from "../utils/sendToEmails.js";
 import { Admin } from "../models/admin.js";
 import { ApiError } from "../utils/apiError.js";
+import jwt from "jsonwebtoken";
+import { Op } from "sequelize";
 
 const OTP_EXPIRATION = 300; // 5 minutes
+
+export const login = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  const admin = await Admin.findOne({ where: { email: email } });
+  if (!admin) throw new ApiError("This email has no account", 401);
+
+  const isPassTrue = await bcrypt.compare(password, admin.password);
+  if (!isPassTrue) throw new ApiError("Wrong password", 403);
+
+  const token = jwt.sign(
+    { id: admin.admin_id, role: admin.role },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: process.env.EXPIRE_JWT_AUTH }
+  );
+
+  res.cookie("adminToken", token, {
+    expires: new Date(Date.now() + 12 * 60 * 60 * 1000),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "prod",
+    sameSite: "strict",
+  });
+
+  res.status(200).json({ message: "Login successfully" });
+});
+
+export const addAdmin = asyncHandler(async (req, res, next) => {
+  const { email, phone, userName, password } = req.body;
+
+  const isExist = await Admin.findOne({ where: { email: email } });
+  if (isExist) throw new ApiError("This account is already exist", 401);
+
+  const otp = generateOTP();
+
+  sendToEmails(
+    email,
+    "Verify your email",
+    `Paste Your Verification code ${otp} \n\nThis Verification code will be valid for 5 min`
+  );
+
+  const userData = { email, phone, userName, password };
+
+  await redisClient.setEx(
+    `verifyEmail-otp:${otp}`,
+    OTP_EXPIRATION,
+    JSON.stringify(userData)
+  );
+
+  res.status(200).json({ message: "OTP sent successfully" });
+});
+
+export const update = asyncHandler(async (req, res, next) => {});
+
+export const getAllAdmins = asyncHandler(async (req, res, next) => {
+  const role = req.userRole;
+  let query = {};
+
+  if (role !== "superAdmin") {
+    query = { role: { [Op.ne]: "superAdmin" } };
+  }
+
+  const admins = await Admin.findAll({
+    where: query,
+    order: [["createdAt", "DESC"]],
+  });
+
+  res.status(200).json({ admins });
+});
+
+export const getAdmin = asyncHandler(async (req, res, next) => {
+  const { adminId } = req.params;
+  const role = req.userRole;
+
+  const admin = await Admin.findByPk(adminId);
+  if (!admin) throw new ApiError("Admin not found", 404);
+
+  if (role !== "superAdmin" && admin.role === "superAdmin") {
+    throw new ApiError("You don't have the permissions to do this action", 403);
+  }
+  res.status(200).json({ admin });
+});
 
 /**
  * ✅ Request OTP for Email Verification (Account Creation or Change)
@@ -21,16 +104,16 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
   }
 
   // Parse the stored JSON string into an object
-  const { email, phone, username, password } = JSON.parse(otpData);
+  const { email, phone, userName, password } = JSON.parse(otpData);
 
-  if (!email || !phone || !username || !password) {
+  if (!email || !phone || !userName || !password) {
     throw new ApiError("Incomplete OTP data", 400);
   }
   const hashedPassword = await bcrypt.hash(password, 12);
 
   await Admin.create({
     email,
-    username,
+    userName,
     phone,
     password: hashedPassword,
   });
@@ -124,70 +207,3 @@ export const resetPassword = asyncHandler(async (req, res) => {
     .status(200)
     .json({ success: true, message: "Password reset successfully" });
 });
-
-/**
- * ✅ Request OTP for Email Update
- */
-// export const requestEmailUpdate = asyncHandler(async (req, res) => {
-//   const { oldEmail, newEmail } = req.body;
-
-//   const existingUser = await Admin.findOne({ where: { email: newEmail } });
-//   if (existingUser) {
-//     return res
-//       .status(400)
-//       .json({ success: false, message: "Email already in use" });
-//   }
-
-//   const otp = generateOTP();
-//   await redisClient.setEx(
-//     `email-change:${otp}`,
-//     OTP_EXPIRATION,
-//     JSON.stringify({ oldEmail, newEmail })
-//   );
-
-//   await sendToEmails(
-//     oldEmail,
-//     "Confirm Email Change",
-//     `Your OTP to change email is: ${otp}`
-//   );
-
-//   res.json({ success: true, message: "OTP sent to old email" });
-// });
-
-// /**
-//  * ✅ Verify OTP and Update Email
-//  */
-// export const verifyEmailChange = asyncHandler(async (req, res) => {
-//   const { otp } = req.body;
-//   if (!otp) {
-//     return res.status(400).json({ success: false, message: "Missing OTP" });
-//   }
-
-//   const data = await redisClient.get(`email-change:${otp}`);
-//   if (!data) {
-//     return res
-//       .status(400)
-//       .json({ success: false, message: "Invalid or expired OTP" });
-//   }
-
-//   const { oldEmail, newEmail } = JSON.parse(data);
-
-//   const emailExists = await Admin.findOne({ where: { email: newEmail } });
-//   if (emailExists) {
-//     return res
-//       .status(400)
-//       .json({ success: false, message: "This email is already in use" });
-//   }
-
-//   await Admin.update({ email: newEmail }, { where: { email: oldEmail } });
-
-//   const updatedUser = await Admin.findOne({ where: { email: newEmail } });
-//   if (!updatedUser) {
-//     return res
-//       .status(500)
-//       .json({ success: false, message: "Email update failed" });
-//   }
-
-//   await redisClient.del(`email-change:${otp}`);
-//   res.json({ success: true, message: "Email updated successfully" });
-// });
