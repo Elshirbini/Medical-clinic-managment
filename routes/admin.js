@@ -8,7 +8,8 @@ import {
   login,
   getAllAdmins,
   getAdmin,
-  update,
+  deleteAdmin,
+  updateAdmin,
 } from "../controllers/admin.js";
 import { otpRateLimiter } from "../middlewares/rateLimiter.js"; // Import rate limiter
 import { restrictTo } from "../middlewares/restrictTo.js";
@@ -20,7 +21,12 @@ router.post("/login", login);
 
 router.post("/add-admin", restrictTo("superAdmin", "admin"), addAdmin);
 
-router.put("/update", verifyToken, restrictTo("superAdmin", "admin"), update);
+router.put(
+  "/update-admin",
+  verifyToken,
+  restrictTo("superAdmin", "admin"),
+  updateAdmin
+);
 
 router.get(
   "/get-all-admins",
@@ -34,6 +40,13 @@ router.get(
   verifyToken,
   restrictTo("superAdmin", "admin"),
   getAdmin
+);
+
+router.delete(
+  "/delete-admin",
+  verifyToken,
+  restrictTo("superAdmin"),
+  deleteAdmin
 );
 
 //  Verify otp to create email

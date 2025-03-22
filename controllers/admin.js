@@ -60,7 +60,7 @@ export const addAdmin = asyncHandler(async (req, res, next) => {
   res.status(200).json({ message: "OTP sent successfully" });
 });
 
-export const update = asyncHandler(async (req, res, next) => {});
+export const updateAdmin = asyncHandler(async (req, res, next) => {});
 
 export const getAllAdmins = asyncHandler(async (req, res, next) => {
   const role = req.userRole;
@@ -91,6 +91,16 @@ export const getAdmin = asyncHandler(async (req, res, next) => {
   res.status(200).json({ admin });
 });
 
+export const deleteAdmin = asyncHandler(async (req, res, next) => {
+  const { adminId } = req.params;
+
+  const admin = await Admin.findByPk(adminId);
+  if (!admin) throw new ApiError("Admin not found", 404);
+
+  await admin.destroy();
+
+  res.status(200).json({ message: "Admin deleted successfully" });
+});
 /**
  * ✅ Request OTP for Email Verification (Account Creation or Change)
  */
