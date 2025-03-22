@@ -9,14 +9,16 @@ export const Admin = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    name: {
+    userName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
+      unique: {
+        msg: "Email must be unique",
+      },
     },
     phone: {
       type: DataTypes.STRING,
@@ -28,7 +30,7 @@ export const Admin = sequelize.define(
     },
     role: {
       type: DataTypes.ENUM("superAdmin", "admin"),
-      allowNull: false,
+      defaultValue: "admin",
     },
   },
   { timestamps: true }

@@ -4,33 +4,52 @@ import {
   SendOtpForResetPassword,
   verifyOTPForResetPassword,
   resetPassword,
-  requestEmailUpdate,
-  verifyEmailChange,
+  addAdmin,
+  login,
+  getAllAdmins,
+  getAdmin,
+  update,
 } from "../controllers/admin.js";
 import { otpRateLimiter } from "../middlewares/rateLimiter.js"; // Import rate limiter
+import { restrictTo } from "../middlewares/restrictTo.js";
+import { verifyToken } from "../middlewares/verifyToken.js";
 
-const route = express.Router();
+const router = express.Router();
 
-//  Verify otp to create email
-route.post("/verify-email", verifyEmail);
+router.post("/login", login);
 
-//  Send OTP to email for password reset
-route.post(
-  "/send-otp-for-resetPassword",
-  otpRateLimiter,
-  SendOtpForResetPassword
+router.post("/add-admin", restrictTo("superAdmin", "admin"), addAdmin);
+
+router.put("/update", verifyToken, restrictTo("superAdmin", "admin"), update);
+
+router.get(
+  "/get-all-admins",
+  verifyToken,
+  restrictTo("superAdmin", "admin"),
+  getAllAdmins
 );
 
+router.get(
+  "/get-admin/:adminId",
+  verifyToken,
+  restrictTo("superAdmin", "admin"),
+  getAdmin
+);
+
+//  Verify otp to create email
+router.post("/verify-otp-for-account-creation", otpRateLimiter, verifyEmail);
+
+//  Send OTP to email for password reset
+router.post("/send-otp-for-resetPassword", SendOtpForResetPassword);
+
 //  Verify OTP (for both email verification & password reset)
-route.post("/verify-otp-for-resetPassword", verifyOTPForResetPassword);
+router.post(
+  "/verify-otp-for-resetPassword",
+  otpRateLimiter,
+  verifyOTPForResetPassword
+);
 
 //  Reset password after OTP verification
-route.patch("/reset-password/:email", resetPassword);
+router.patch("/reset-password/:email", resetPassword);
 
-// //  Request OTP for changing email
-// route.post("/request-email-update", otpRateLimiter, requestEmailUpdate);
-
-// //  Verify OTP & update email
-// route.post("/verify-email-change", verifyEmailChange);
-
-export const adminRoutes = route;
+export const adminRoutes = router;
