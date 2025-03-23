@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import { compare, hash } from "bcrypt";
 import asyncHandler from "express-async-handler";
 import redisClient from "../config/redis.js";
 import { generateOTP } from "../utils/generateOTP.js";
@@ -16,7 +16,7 @@ export const login = asyncHandler(async (req, res, next) => {
   const admin = await Admin.findOne({ where: { email: email } });
   if (!admin) throw new ApiError("This email has no account", 401);
 
-  const isPassTrue = await bcrypt.compare(password, admin.password);
+  const isPassTrue = await compare(password, admin.password);
   if (!isPassTrue) throw new ApiError("Wrong password", 403);
 
   const token = jwt.sign(
@@ -119,7 +119,7 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
   if (!email || !phone || !userName || !password) {
     throw new ApiError("Incomplete OTP data", 400);
   }
-  const hashedPassword = await bcrypt.hash(password, 12);
+  const hashedPassword = await hash(password, 12);
 
   await Admin.create({
     email,
@@ -207,7 +207,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
   }
 
   // Hash and update password
-  const hashedPassword = await bcrypt.hash(newPassword, 12);
+  const hashedPassword = await hash(newPassword, 12);
   await Admin.update({ password: hashedPassword }, { where: { email } });
 
   // Delete verification flag from Redis
