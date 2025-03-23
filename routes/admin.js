@@ -43,7 +43,7 @@ router.get(
 );
 
 router.delete(
-  "/delete-admin",
+  "/delete-admin/:adminId",
   verifyToken,
   restrictTo("superAdmin"),
   deleteAdmin
