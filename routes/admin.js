@@ -19,7 +19,12 @@ const router = express.Router();
 
 router.post("/login", login);
 
-router.post("/add-admin", restrictTo("superAdmin", "admin"), addAdmin);
+router.post(
+  "/add-admin",
+  verifyToken,
+  restrictTo("superAdmin", "admin"),
+  addAdmin
+);
 
 router.put(
   "/update-admin",
