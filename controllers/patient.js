@@ -8,7 +8,6 @@ import { sendToWhatsapp } from "../utils/sendToWhatsapp.js";
 
 const OTP_EXPIRATION = 300; // 5 minutes
 
-
 export const login = asyncHandler(async (req, res, next) => {
   const { phone } = req.body;
 
@@ -18,10 +17,14 @@ export const login = asyncHandler(async (req, res, next) => {
   }
 
   const otp = generateOTP();
-  
+
   await sendToWhatsapp(phone, "otp", otp);
 
-  await redisClient.setEx(otp, OTP_EXPIRATION, JSON.stringify({ id: patient.patient_id }));
+  await redisClient.setEx(
+    otp,
+    OTP_EXPIRATION,
+    JSON.stringify({ id: patient.patient_id })
+  );
 
   res.status(200).json({ message: "Code sent successfully" });
 });
@@ -30,7 +33,7 @@ export const signup = asyncHandler(async (req, res, next) => {
   const { name, gender, age, phone } = req.body;
 
   const isExist = await Patient.findOne({ where: { phone: phone } });
-  if (isExist) throw new ApiError("This patient is already exists", 403);
+  if (isExist) throw new ApiError("This patient already exists", 403);
 
   const otp = generateOTP();
 
@@ -78,21 +81,4 @@ export const verifyOTP = asyncHandler(async (req, res, next) => {
   });
 
   res.status(200).json({ message: "Successfully" });
-});
-
-export const getPatientAppointments = asyncHandler(async (req, res, next) => {
-  const { patientId } = req.params;
-
-  const patient = await Patient.findByPk(patientId);
-
-  const appointments = await Appointment.findAll({
-    where: { patient_id: patient.patient_id },
-    order: [["createdAt", "ASC"]],
-  });
-
-  if (!appointments || appointments.length === 0) {
-    throw new ApiError("No appointments found", 404);
-  }
-
-  res.status(200).json({ appointments });
 });
