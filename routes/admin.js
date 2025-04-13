@@ -11,7 +11,7 @@ import {
   deleteAdmin,
   updateAdmin,
 } from "../controllers/admin.js";
-import { otpRateLimiter } from "../middlewares/rateLimiter.js"; // Import rate limiter
+import { otpRateLimiter } from "../middlewares/rateLimiter.js";
 import { restrictTo } from "../middlewares/restrictTo.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
 

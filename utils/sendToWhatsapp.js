@@ -47,7 +47,7 @@ export const sendToWhatsapp = async (phone, template, text) => {
         template: {
           name: template,
           language: {
-            code: "ar",
+            code: "en_US",
           },
           components: components,
         },

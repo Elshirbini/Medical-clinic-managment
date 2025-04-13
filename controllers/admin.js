@@ -39,11 +39,11 @@ export const addAdmin = asyncHandler(async (req, res, next) => {
   const { email, phone, userName, password } = req.body;
 
   const isExist = await Admin.findOne({ where: { email: email } });
-  if (isExist) throw new ApiError("This account is already exist", 401);
+  if (isExist) throw new ApiError("This account already exists", 401);
 
   const otp = generateOTP();
 
-  sendToEmails(
+  await sendToEmails(
     email,
     "Verify your email",
     `Paste Your Verification code ${otp} \n\nThis Verification code will be valid for 5 min`
@@ -189,10 +189,10 @@ export const verifyOTPForResetPassword = asyncHandler(async (req, res) => {
  * ✅ Reset Password After OTP Verification
  */
 export const resetPassword = asyncHandler(async (req, res) => {
-  const { ConfirmePassword, newPassword } = req.body;
+  const { ConfirmPassword, newPassword } = req.body;
   const { email } = req.params;
-  if (ConfirmePassword !== newPassword) {
-    throw new ApiError("password dosent match", 400);
+  if (ConfirmPassword !== newPassword) {
+    throw new ApiError("password doesn't match", 400);
   }
   // Check if OTP was verified
   const isVerified = await redisClient.get(`reset-verified:${email}`);

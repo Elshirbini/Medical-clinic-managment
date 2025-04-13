@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { configDotenv } from "dotenv";
+import { ApiError } from "./apiError.js";
 configDotenv();
 
 const transporter = nodemailer.createTransport({
@@ -10,19 +11,19 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendToEmails = (email, subject, text) => {
+export const sendToEmails = async(email, subject, text) => {
   const mailOptions = {
     from: "ahmedalshirbini33@gmail.com",
     to: email,
     subject: subject,
     text: text,
   };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error);
-    } else {
-      console.log("Email sent: " + info.response);
-    }
-  });
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent: " + info.response);
+    return info; 
+  } catch (error) {
+    console.log(error);
+    if (error) throw new ApiError("This email is invalid, please try another one", 403);
+  }
 };

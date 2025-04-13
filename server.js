@@ -3,17 +3,21 @@ import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import http from "http";
+import sequelize from "./config/db.js";
+import morgan from "morgan";
 import { configDotenv } from "dotenv";
 import { errorHandling } from "./middlewares/errorHandling.js";
-import { ApiError } from "./utils/apiError.js";
-import sequelize from "./config/db.js";
 import { superAdmin } from "./config/superAdmin.js";
 import { patientRoutes } from "./routes/patient.js";
 import { adminRoutes } from "./routes/admin.js";
+import { appointmentsRoutes } from "./routes/appointment.js";
+import { setUpSocket } from "./socket.js";
 configDotenv();
 
 const app = express();
-
+const server = http.createServer(app);
+app.use(morgan("dev"));
 app.use(
   cors({
     origin: "*",
@@ -30,23 +34,26 @@ app.use(helmet());
 
 app.use("/api/patient", patientRoutes);
 app.use("/api/admin", adminRoutes);
-
-app.all("*", (req, res, next) => {
-  next(new ApiError(`Can't find this route : ${req.originalUrl}`, 400));
-});
+app.use("/api/appointment", appointmentsRoutes);
 
 app.use(errorHandling);
-
-app.listen(process.env.PORT, async () => {
+const startServer = async () => {
   try {
     await sequelize.sync({ alter: true });
     await superAdmin();
     console.log("✅ All models were synchronized successfully.");
-    console.log(`🚀 Server running on PORT:${process.env.PORT}`);
+
+    server.listen(process.env.PORT, () => {
+      console.log(`🚀 Server running on PORT:${process.env.PORT}`);
+    });
+
+    setUpSocket(server);
   } catch (error) {
     console.error("❌ Unable to synchronize models:", error);
   }
-});
+};
+
+startServer();
 
 process.on("unhandledRejection", (err) => {
   console.error(`Unhandled Rejection Errors : ${err.name} | ${err.message}`);
