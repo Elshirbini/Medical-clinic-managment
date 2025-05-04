@@ -1,8 +1,8 @@
 import request from "supertest";
 import app from "../app.js";
-import sequelize from "./config/db.js";
+import sequelize from "../config/db.js";
 import redisClient from "../config/redis.js";
-import { Admin } from "./models/admin.js";
+import { Admin } from "../models/index.js";
 import { hash } from "bcrypt";
 
 describe("Admin APIs", () => {
@@ -20,7 +20,6 @@ describe("Admin APIs", () => {
       }
 
       await sequelize.sync({ force: true });
-      await sequelize.authenticate();
       console.log("Database connection established successfully.");
 
       const hashedPassword = await hash("admin123", 10);
