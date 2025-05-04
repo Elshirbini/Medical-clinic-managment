@@ -1,12 +1,11 @@
 import jwt from "jsonwebtoken";
 import { configDotenv } from "dotenv";
 import { ApiError } from "../utils/apiError.js";
-import asyncHandler from "express-async-handler";
 import { Admin } from "../models/admin.js";
 import { Patient } from "../models/patient.js";
 configDotenv();
 
-export const verifyToken = asyncHandler(async (req, res, next) => {
+export const verifyToken = async (req, res, next) => {
   let token;
   let userDoc;
   if (req.cookies["adminToken"]) {
@@ -31,4 +30,4 @@ export const verifyToken = asyncHandler(async (req, res, next) => {
     if (!userDoc) return next(new ApiError("User not found", 404));
     next();
   });
-});
+};

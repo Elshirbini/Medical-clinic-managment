@@ -1,8 +1,8 @@
 import { Admin } from "../models/admin.js";
 import { hash } from "bcrypt";
-import asyncHandler from "express-async-handler";
 
-export const superAdmin = asyncHandler(async () => {
+
+export const superAdmin = async () => {
   const userName = "Elshirbini";
   const email = "ahmedalshirbini22@gmail.com";
   const phone = "010943553300";
@@ -16,4 +16,4 @@ export const superAdmin = asyncHandler(async () => {
   const hashedPass = await hash(password, 12);
   await Admin.create({ userName, email, phone, password: hashedPass, role });
   console.log({ message: "superAdmin is created" });
-});
+};
