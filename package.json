@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test": "NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest",
     "dev": "nodemon server.js"
   },
   "jest": {
