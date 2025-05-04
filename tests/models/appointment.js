@@ -29,7 +29,7 @@ export const Appointment = sequelize.define(
   { indexes: [{ fields: ["patient_id"] }], timestamps: true }
 );
 
-export const AvailableAppointments = sequelize.define("availableAppointments", {
+export const AvailableAppointments = sequelize.define("available_appointments", {
   appointment_id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,

@@ -1,10 +1,10 @@
 import sequelize from "../config/db.js";
 import { DataTypes } from "sequelize";
 
-export const Notification = sequelize.define(
-  "notifications",
+export const Invoice = sequelize.define(
+  "invoices",
   {
-    notification_id: {
+    invoice_id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
@@ -13,16 +13,19 @@ export const Notification = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
     },
-    message: {
-      type: DataTypes.STRING,
+    amount: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
-    status: {
-      type: DataTypes.ENUM("consultation", "update", "cancel"),
+    image: {
+      type: DataTypes.JSON,
+      allowNull: false,
     },
-    sendAt: {
-      type: DataTypes.DATE,
-      defaultValue: new Date(),
+    details: {
+      type: DataTypes.STRING,
+    },
+    status: {
+      type: DataTypes.ENUM("paid", "unpaid"),
     },
   },
   { indexes: [{ fields: ["patient_id"] }], timestamps: true }

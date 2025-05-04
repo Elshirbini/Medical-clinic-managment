@@ -11,12 +11,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendToEmails = async(email, subject, text) => {
+export const sendToEmails = async(email, subject, html) => {
   const mailOptions = {
     from: "ahmedalshirbini33@gmail.com",
     to: email,
     subject: subject,
-    text: text,
+    html: html,
   };
   try {
     const info = await transporter.sendMail(mailOptions);

@@ -25,8 +25,8 @@ MedicalRecord.belongsTo(Appointment, { foreignKey: "appointment_id" });
 Conversation.belongsTo(Patient, { foreignKey: "patient_id" });
 Patient.hasOne(Conversation, { foreignKey: "patient_id" });
 
-Conversation.belongsTo(Admin, { foreignKey: "doctor_id" });
-Admin.hasMany(Conversation, { foreignKey: "doctor_id" });
+Conversation.belongsTo(Admin, { foreignKey: "admin_id" });
+Admin.hasMany(Conversation, { foreignKey: "admin_id" });
 
 Message.belongsTo(Conversation, {
   foreignKey: "conversation_id",

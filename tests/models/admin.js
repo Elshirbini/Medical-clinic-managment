@@ -1,32 +1,37 @@
 import sequelize from "../config/db.js";
 import { DataTypes } from "sequelize";
 
-export const Patient = sequelize.define(
-  "patients",
+export const Admin = sequelize.define(
+  "admins",
   {
-    patient_id: {
+    admin_id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    name: {
+    userName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    gender: {
-      type: DataTypes.ENUM("male", "female"),
-      allowNull: false,
-    },
-    age: {
+    email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true, // Temporarily
+      unique: {
+        msg: "Email must be unique",
+      },
     },
     phone: {
       type: DataTypes.STRING,
+      unique: true,
+    },
+    password: {
+      type: DataTypes.STRING,
       allowNull: false,
-      // unique: true, // Temporarily
+    },
+    role: {
+      type: DataTypes.ENUM("superAdmin", "admin"),
+      defaultValue: "admin",
     },
   },
-  { indexes: [{ fields: ["patient_id"] }], timestamps: true }
+  { timestamps: true }
 );

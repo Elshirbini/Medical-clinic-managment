@@ -1,4 +1,3 @@
-import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken";
 import redisClient from "../config/redis.js";
 import { Appointment, Patient } from "../models/index.js";
@@ -8,7 +7,7 @@ import { sendToWhatsapp } from "../utils/sendToWhatsapp.js";
 
 const OTP_EXPIRATION = 300; // 5 minutes
 
-export const login = asyncHandler(async (req, res, next) => {
+export const login = async (req, res) => {
   const { phone } = req.body;
 
   const patient = await Patient.findOne({ where: { phone: phone } });
@@ -27,9 +26,9 @@ export const login = asyncHandler(async (req, res, next) => {
   );
 
   res.status(200).json({ message: "Code sent successfully" });
-});
+};
 
-export const signup = asyncHandler(async (req, res, next) => {
+export const signup = async (req, res) => {
   const { name, gender, age, phone } = req.body;
 
   const isExist = await Patient.findOne({ where: { phone: phone } });
@@ -44,9 +43,9 @@ export const signup = asyncHandler(async (req, res, next) => {
   await redisClient.setEx(otp, OTP_EXPIRATION, JSON.stringify(patientData));
 
   res.status(200).json({ message: "Code sent successfully" });
-});
+};
 
-export const verifyOTP = asyncHandler(async (req, res, next) => {
+export const verifyOTP = async (req, res) => {
   const { code } = req.body;
   let patient;
   let id;
@@ -67,8 +66,18 @@ export const verifyOTP = asyncHandler(async (req, res, next) => {
     id = parsedData.id;
   }
 
-  const token = jwt.sign({ id: id }, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: process.env.EXPIRE_JWT_AUTH,
+  const token = await new Promise((resolve, reject) => {
+    jwt.sign(
+      { id: id },
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: process.env.EXPIRE_JWT_AUTH,
+      },
+      (err, token) => {
+        if (err) return reject(new ApiError("Error in signing token", 501));
+        resolve(token);
+      }
+    );
   });
 
   await redisClient.del(code);
@@ -81,4 +90,42 @@ export const verifyOTP = asyncHandler(async (req, res, next) => {
   });
 
   res.status(200).json({ message: "Successfully" });
-});
+};
+
+export const register = async (req, res) => {
+  const { name, gender, age, phone } = req.body;
+
+  const patient = await Patient.create({ name, gender, age, phone });
+
+  res.json(patient);
+};
+
+export const signin = async (req, res) => {
+  const { phone } = req.body;
+
+  const patient = await Patient.findOne({ where: { phone } });
+  if (!patient) throw new ApiError("Patient not found", 404);
+
+  const token = await new Promise((resolve, reject) => {
+    jwt.sign(
+      { id: patient.patient_id },
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: process.env.EXPIRE_JWT_AUTH,
+      },
+      (err, token) => {
+        if (err) return reject(new ApiError("Error in signing token", 501));
+        resolve(token);
+      }
+    );
+  });
+
+  res.cookie("patientToken", token, {
+    expires: new Date(Date.now() + 12 * 60 * 60 * 1000),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "prod",
+    sameSite: "strict",
+  });
+
+  res.status(200).json({ message: "Successfully" });
+};

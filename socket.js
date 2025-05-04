@@ -13,6 +13,12 @@ export const setUpSocket = (server) => {
   io.on("connection", (socket) => {
     console.log("🟢 A user connected:", socket.id);
 
+    // Join doctor room if user is superAdmin
+    socket.on("join-doctor-room", () => {
+      socket.join("doctor-room");
+      console.log("👨‍⚕️ Doctor joined the room");
+    });
+
     socket.on("disconnect", () => {
       console.log("🔴 User disconnected:", socket.id);
     });
@@ -24,4 +30,9 @@ export const setUpSocket = (server) => {
 export const getIO = () => {
   if (!io) throw new Error("Socket.io not initialized");
   return io;
+};
+
+export const emitNotification = (notification) => {
+  const io = getIO();
+  io.to("doctor-room").emit("new-notification", notification);
 };

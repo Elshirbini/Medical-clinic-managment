@@ -54,20 +54,20 @@ router.delete(
   deleteAdmin
 );
 
-//  Verify otp to create email
 router.post("/verify-otp-for-account-creation", otpRateLimiter, verifyEmail);
 
-//  Send OTP to email for password reset
-router.post("/send-otp-for-resetPassword", SendOtpForResetPassword);
+router.post(
+  "/send-otp-for-resetPassword",
+  otpRateLimiter,
+  SendOtpForResetPassword
+);
 
-//  Verify OTP (for both email verification & password reset)
 router.post(
   "/verify-otp-for-resetPassword",
   otpRateLimiter,
   verifyOTPForResetPassword
 );
 
-//  Reset password after OTP verification
 router.patch("/reset-password/:email", resetPassword);
 
 export const adminRoutes = router;

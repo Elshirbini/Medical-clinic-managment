@@ -1,11 +1,10 @@
-import asyncHandler from "express-async-handler";
 import { Appointment, Patient } from "../models/index.js";
 import { convertTo24Hour } from "../utils/convertHoursFormat.js";
 import { ApiError } from "../utils/apiError.js";
-import { sendToWhatsapp } from "../utils/sendToWhatsapp.js";
 import { getIO } from "../socket.js";
+import { AvailableAppointments } from "../models/appointment.js";
 
-export const getPatientAppointments = asyncHandler(async (req, res, next) => {
+export const getPatientAppointments = async (req, res) => {
   const { patientId } = req.params;
 
   const patient = await Patient.findByPk(patientId);
@@ -20,11 +19,56 @@ export const getPatientAppointments = asyncHandler(async (req, res, next) => {
   }
 
   res.status(200).json({ appointments });
-});
+};
 
-export const bookAppointment = asyncHandler(async (req, res, next) => {
+export const addAvailableAppointments = async (req, res) => {
+  const { time } = req.body;
+
+  const times = time.map((time) => {
+    return { time: time };
+  });
+
+  await AvailableAppointments.destroy({ where: {}, truncate: true });
+
+  await AvailableAppointments.bulkCreate(times);
+
+  res
+    .status(200)
+    .json({ message: "Available appointments successfully added" });
+};
+
+export const getAvailableAppointments = async (req, res) => {
+  const { date } = req.params;
+
+  const availableAppointments = await AvailableAppointments.findAll({
+    attributes: ["time"],
+  });
+
+  const scheduledAppointments = await Appointment.findAll({
+    where: {
+      date,
+      status: "scheduled",
+    },
+    attributes: ["time"],
+  });
+
+  const scheduledTimes = scheduledAppointments.map((app) => app.time);
+
+  const availableTimes = availableAppointments.filter((app) => {
+    return !scheduledTimes.includes(app.time);
+  });
+
+  res.status(200).json({ availableTimes, scheduledTimes });
+};
+
+export const bookAppointment = async (req, res) => {
   const { date, time } = req.body;
   const { patientId } = req.params;
+
+  const isAvailable = await AvailableAppointments.findOne({
+    where: { time: time },
+  });
+  if (!isAvailable) throw new ApiError("This appointment is unavailable", 403);
 
   const isExist = await Appointment.findOne({
     where: { date: date, time: time, status: "scheduled" },
@@ -57,4 +101,23 @@ export const bookAppointment = asyncHandler(async (req, res, next) => {
   res
     .status(201)
     .json({ message: "Appointment booked successfully", appointment });
-});
+};
+
+export const cancelAppointment = async (req, res) => {
+  const { appointmentId } = req.params;
+
+  const appointment = await Appointment.findByPk(appointmentId);
+  if (!appointment) throw new ApiError("Appointment not found", 404);
+
+  await appointment.destroy();
+
+  const io = getIO();
+
+  io.to("admins").emit("cancel-appointment", {
+    message: "Cancel Appointment",
+    date: appointment.date,
+    time: appointment.time,
+  });
+
+  res.status(200).json({ message: "Appointment canceled successfully" });
+};
