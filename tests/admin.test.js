@@ -15,7 +15,11 @@ describe("Admin APIs", () => {
         idle: 10000,
       };
 
-      await sequelize.sync({ force: true }); 
+      if (!redisClient.isOpen) {
+        await redisClient.connect();
+      }
+
+      await sequelize.sync({ force: true });
       await sequelize.authenticate();
       console.log("Database connection established successfully.");
 
@@ -70,8 +74,10 @@ describe("Admin APIs", () => {
     try {
       await sequelize.close({ force: true });
       console.log("Database connection closed successfully.");
-      await redisClient.quit();
-      console.log("Redis connection closed successfully.");
+      if (redisClient.isOpen) {
+        await redisClient.quit();
+        console.log("Redis connection closed successfully.");
+      }
     } catch (error) {
       console.error("Error closing connections:", error);
       throw error;
