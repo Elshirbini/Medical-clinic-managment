@@ -116,7 +116,7 @@ describe("Admin APIs", () => {
       .post("/v1/api/admin/add-admin")
       .set("Cookie", superAdminToken)
       .send({
-        email: "newadmin@example.com",
+        email: "newadmin3@example.com",
         userName: "New Admin",
         phone: "1234567890",
         password: "newpass123",
