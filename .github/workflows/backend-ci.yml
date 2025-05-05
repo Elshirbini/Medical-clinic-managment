@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      PASS_GMAIL_SERVICE: ${{secrets.PASS_GMAIL_SERVICE}}
       ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
       NODE_ENV: ${{ secrets.NODE_ENV }}
       EXPIRE_JWT_AUTH: ${{ secrets.EXPIRE_JWT_AUTH }}
