@@ -43,19 +43,32 @@ describe("Admin APIs", () => {
         role: "superAdmin",
       });
 
-      // Login as regular admin
+      // Login as regular admin and verify token
       const adminResponse = await request(app).post("/v1/api/admin/login").send({
         email: "admin@example.com",
         password: "admin123",
       });
+      expect(adminResponse.statusCode).toBe(200);
+      expect(adminResponse.headers["set-cookie"]).toBeDefined();
       adminToken = adminResponse.headers["set-cookie"][0];
+      console.log("Admin token created successfully");
 
-      // Login as super admin
+      // Login as super admin and verify token
       const superAdminResponse = await request(app).post("/v1/api/admin/login").send({
         email: "super@example.com",
         password: "super123",
       });
+      expect(superAdminResponse.statusCode).toBe(200);
+      expect(superAdminResponse.headers["set-cookie"]).toBeDefined();
       superAdminToken = superAdminResponse.headers["set-cookie"][0];
+      console.log("SuperAdmin token created successfully");
+
+      // Verify superAdmin token works
+      const verifyResponse = await request(app)
+        .get("/v1/api/admin/get-all-admins")
+        .set("Cookie", superAdminToken);
+      expect(verifyResponse.statusCode).toBe(200);
+      console.log("SuperAdmin token verified successfully");
     } catch (error) {
       console.error("Unable to connect to the database:", error);
       throw error;
