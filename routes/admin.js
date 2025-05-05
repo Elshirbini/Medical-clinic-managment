@@ -22,28 +22,28 @@ router.post("/login", login);
 router.post(
   "/add-admin",
   verifyToken,
-  restrictTo("superAdmin", "admin"),
+  restrictTo("superAdmin"),
   addAdmin
 );
 
 router.put(
   "/update-admin",
   verifyToken,
-  restrictTo("superAdmin", "admin"),
+  restrictTo("superAdmin"),
   updateAdmin
 );
 
 router.get(
   "/get-all-admins",
   verifyToken,
-  restrictTo("superAdmin", "admin"),
+  restrictTo("superAdmin"),
   getAllAdmins
 );
 
 router.get(
   "/get-admin/:adminId",
   verifyToken,
-  restrictTo("superAdmin", "admin"),
+  restrictTo("superAdmin"),
   getAdmin
 );
 
