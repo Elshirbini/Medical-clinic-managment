@@ -32,40 +32,20 @@ export const startConversationWithDoctor = async (req, res) => {
 
 export const getAllConversation = async (req, res) => {
   const conversations = await Conversation.findAll({
-    order: [["createdAt", "DESC"]],
+    order: [["lastMessageAt", "DESC"]],
     include: [
       {
         model: Patient,
         attributes: ["name"],
       },
-      {
-        model: Message,
-        attributes: ["createdAt"],
-        limit: 1,
-        order: [["createdAt", "DESC"]],
-      },
     ],
   });
-
-  console.log(conversations);
 
   if (!conversations || conversations.length === 0) {
     throw new ApiError("No conversations found", 404);
   }
 
-  // Sort conversations based on the latest message
-  const sortedConversations = conversations.sort((a, b) => {
-    const aLastMessage = a.Messages[0]?.createdAt || a.createdAt;
-    const bLastMessage = b.Messages[0]?.createdAt || b.createdAt;
-    return new Date(bLastMessage) - new Date(aLastMessage);
-  });
-
-  const conversationsWithPatients = sortedConversations.map((conversation) => ({
-    conversation,
-    patientName: conversation.patient.name,
-  }));
-
-  res.status(200).json({ conversations: conversationsWithPatients });
+  res.status(200).json({ conversations });
 };
 
 export const getConversation = async (req, res) => {
@@ -150,6 +130,9 @@ export const sendMessage = async (req, res) => {
     senderType: userRole ? "doctor" : "patient",
     message,
   });
+
+  conversation.lastMessageAt = messageSent.createdAt;
+  await conversation.save();
 
   // Create notification if the message is from a patient
   if (!userRole) {
