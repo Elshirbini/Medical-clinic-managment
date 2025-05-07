@@ -22,8 +22,11 @@ export const Conversation = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    lastMessageAt : {
+      type : DataTypes.DATE
+    }
   },
-  { indexes: [{ fields: ["conversation_id"] }], timestamps: true }
+  { indexes: [{ fields: ["conversation_id", "lastMessageAt"] }], timestamps: true }
 );
 
 export const Message = sequelize.define(
